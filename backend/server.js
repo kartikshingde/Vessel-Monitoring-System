@@ -6,6 +6,7 @@ const connectDB = require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
 const vesselRoutes = require("./routes/vesselRoutes");
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
@@ -22,6 +23,9 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/vessels", vesselRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/vessels', vesselRoutes);
+app.use('/api/users', userRoutes); 
 
 app.get("/", (req, res) => {
   res.json({

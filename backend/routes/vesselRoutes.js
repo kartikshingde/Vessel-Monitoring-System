@@ -10,17 +10,22 @@ const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// Apply protect to all routes
+// All routes require authentication
 router.use(protect);
 
-// Vessel routes
-router.route('/')
+// GET all vessels, POST create vessel
+router
+  .route('/')
   .get(getVessels)
   .post(restrictTo('manager'), createVessel);
 
-router.route('/:id')
+// GET single vessel, PUT update, DELETE vessel
+router
+  .route('/:id')
   .get(getVessel)
   .put(updateVessel)
   .delete(restrictTo('manager'), deleteVessel);
 
 module.exports = router;
+
+

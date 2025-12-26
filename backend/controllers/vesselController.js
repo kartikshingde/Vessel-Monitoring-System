@@ -5,6 +5,7 @@ exports.getVessels = async (req, res) => {
   try {
     let query = {};
 
+    // If captain, only show their vessel
     if (req.user.role === "captain") {
       query.captainId = req.user._id;
     }
@@ -17,7 +18,7 @@ exports.getVessels = async (req, res) => {
     res.json({
       success: true,
       count: vessels.length,
-      vessels,
+      data: vessels, // NEW - consistent with users
     });
   } catch (error) {
     res.status(500).json({
@@ -30,7 +31,7 @@ exports.getVessels = async (req, res) => {
 //   GET /api/vessels/:id
 exports.getVessel = async (req, res) => {
   try {
-    const vessel = await Vessel.findById(req.params.id).populate(
+    const vessels = await Vessel.findById(req.params.id).populate(
       "captainId",
       "name email"
     );
@@ -54,7 +55,8 @@ exports.getVessel = async (req, res) => {
 
     res.json({
       success: true,
-      vessel,
+      count: vessels.length,
+      data: vessels, // NEW - consistent with users
     });
   } catch (error) {
     res.status(500).json({
@@ -64,7 +66,7 @@ exports.getVessel = async (req, res) => {
   }
 };
 
-//  POST /api/vessels
+//   POST /api/vessels
 exports.createVessel = async (req, res) => {
   try {
     const { name, mmsi, captainId, position, speed, heading, status } =
@@ -85,7 +87,7 @@ exports.createVessel = async (req, res) => {
       });
     }
 
-    const vessel = await Vessel.create({
+    const vessels = await Vessel.create({
       name,
       mmsi,
       captainId: captainId || null,
@@ -95,9 +97,10 @@ exports.createVessel = async (req, res) => {
       status: status || "active",
     });
 
-    res.status(201).json({
+    res.json({
       success: true,
-      vessel,
+      count: vessels.length,
+      data: vessels,
     });
   } catch (error) {
     res.status(500).json({
@@ -107,12 +110,12 @@ exports.createVessel = async (req, res) => {
   }
 };
 
-//  PUT /api/vessels/:id
+//   PUT /api/vessels/:id
 exports.updateVessel = async (req, res) => {
   try {
-    let vessel = await Vessel.findById(req.params.id);
+    let vessels = await Vessel.findById(req.params.id);
 
-    if (!vessel) {
+    if (!vessels) {
       return res.status(404).json({
         success: false,
         message: "Vessel not found",
@@ -121,7 +124,7 @@ exports.updateVessel = async (req, res) => {
 
     if (
       req.user.role === "captain" &&
-      vessel.captainId?.toString() !== req.user._id.toString()
+      vessels.captainId?.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({
         success: false,
@@ -133,14 +136,15 @@ exports.updateVessel = async (req, res) => {
       delete req.body.captainId;
     }
 
-    vessel = await Vessel.findByIdAndUpdate(req.params.id, req.body, {
+    vessels = await Vessel.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
 
     res.json({
       success: true,
-      vessel,
+      count: vessels.length,
+      data: vessels,
     });
   } catch (error) {
     res.status(500).json({
@@ -150,23 +154,24 @@ exports.updateVessel = async (req, res) => {
   }
 };
 
-//  DELETE /api/vessels/:id
+//   DELETE /api/vessels/:id
 exports.deleteVessel = async (req, res) => {
   try {
-    const vessel = await Vessel.findById(req.params.id);
+    const vessels = await Vessel.findById(req.params.id);
 
-    if (!vessel) {
+    if (!vessels) {
       return res.status(404).json({
         success: false,
         message: "Vessel not found",
       });
     }
 
-    await vessel.deleteOne();
+    await vessels.deleteOne();
 
     res.json({
       success: true,
-      message: "Vessel deleted successfully",
+      count: vessels.length,
+      data: vessels, // NEW - consistent with users
     });
   } catch (error) {
     res.status(500).json({

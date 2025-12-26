@@ -1,21 +1,21 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const vesselSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Vessel name is required'],
+      required: [true, "Vessel name is required"],
       trim: true,
     },
     mmsi: {
       type: String,
-      required: [true, 'MMSI is required'],
+      required: [true, "MMSI is required"],
       unique: true,
       trim: true,
     },
     captainId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       default: null,
     },
     position: {
@@ -35,8 +35,8 @@ const vesselSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'docked', 'maintenance'],
-      default: 'active',
+      enum: ["active", "docked", "maintenance"],
+      default: "active",
     },
     positionHistory: [
       {
@@ -50,11 +50,10 @@ const vesselSchema = new mongoose.Schema(
 );
 
 // Limit position history to last 50 entries
-vesselSchema.pre('save', function (next) {
+vesselSchema.pre("save", function () {
   if (this.positionHistory.length > 50) {
     this.positionHistory = this.positionHistory.slice(-50);
   }
-  next();
 });
 
-module.exports = mongoose.model('Vessel', vesselSchema);
+module.exports = mongoose.model("Vessel", vesselSchema);
