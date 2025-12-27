@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import ManagerDashboard from './components/ManagerDashboard';
 
 function App() {
   return (
@@ -28,7 +29,7 @@ function App() {
             path="/manager"
             element={
               <ProtectedRoute allowedRoles={['manager']}>
-                <Dashboard />
+                <ManagerDashboard />
               </ProtectedRoute>
             }
           />
