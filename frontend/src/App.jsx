@@ -1,10 +1,16 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import Login from './components/Login';
-import Register from './components/Register';
-import Dashboard from './components/Dashboard';
-import ManagerDashboard from './components/ManagerDashboard';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./components/Login";
+import Register from "./components/Register";
+import Dashboard from "./components/Dashboard";
+import ManagerDashboard from "./components/ManagerDashboard";
+import CaptainDashboard from "./components/CaptainDashboard";
 
 function App() {
   return (
@@ -14,7 +20,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          
+
           {/* Protected Routes */}
           <Route
             path="/dashboard"
@@ -24,25 +30,24 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           <Route
             path="/manager"
             element={
-              <ProtectedRoute allowedRoles={['manager']}>
+              <ProtectedRoute allowedRoles={["manager"]}>
                 <ManagerDashboard />
               </ProtectedRoute>
             }
           />
-          
+
           <Route
             path="/captain"
             element={
-              <ProtectedRoute allowedRoles={['captain']}>
-                <Dashboard />
+              <ProtectedRoute allowedRoles={["captain"]}>
+                <CaptainDashboard /> 
               </ProtectedRoute>
             }
           />
-          
           {/* Default redirect */}
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
