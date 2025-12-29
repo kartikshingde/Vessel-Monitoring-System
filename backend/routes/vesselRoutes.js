@@ -5,6 +5,8 @@ const {
   createVessel,
   updateVessel,
   deleteVessel,
+  submitNoonReport,   // ADD THIS
+  getNoonReports,     // ADD THIS
 } = require('../controllers/vesselController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
@@ -26,6 +28,8 @@ router
   .put(updateVessel)
   .delete(restrictTo('manager'), deleteVessel);
 
+// ADD NOON REPORT ROUTES
+router.post('/:id/noon-report', restrictTo('captain'), submitNoonReport);
+router.get('/:id/noon-reports', getNoonReports);
+
 module.exports = router;
-
-

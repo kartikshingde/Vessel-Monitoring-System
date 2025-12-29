@@ -1,18 +1,8 @@
 const mongoose = require("mongoose");
-
 const vesselSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: [true, "Vessel name is required"],
-      trim: true,
-    },
-    mmsi: {
-      type: String,
-      required: [true, "MMSI is required"],
-      unique: true,
-      trim: true,
-    },
+    name: { type: String, required: true },
+    mmsi: { type: String, required: true, unique: true },
     captainId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -22,38 +12,23 @@ const vesselSchema = new mongoose.Schema(
       lat: { type: Number, default: 0 },
       lng: { type: Number, default: 0 },
     },
-    speed: {
-      type: Number,
-      default: 0,
-      min: 0,
+    currentPosition: {
+      // ADD THIS
+      latitude: { type: Number, default: 0 },
+      longitude: { type: Number, default: 0 },
+      timestamp: { type: Date, default: Date.now },
     },
-    heading: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 360,
-    },
+    speed: { type: Number, default: 0 },
+    heading: { type: Number, default: 0 },
     status: {
       type: String,
       enum: ["active", "docked", "maintenance"],
       default: "active",
     },
-    positionHistory: [
-      {
-        lat: { type: Number, required: true },
-        lng: { type: Number, required: true },
-        timestamp: { type: Date, default: Date.now },
-      },
-    ],
+    destination: { type: String }, // ADD THIS
   },
-  { timestamps: true }
-);
-
-// Limit position history to last 50 entries
-vesselSchema.pre("save", function () {
-  if (this.positionHistory.length > 50) {
-    this.positionHistory = this.positionHistory.slice(-50);
+  {
+    timestamps: true,
   }
-});
-
-module.exports = mongoose.model("Vessel", vesselSchema);
+);
+module.exports = mongoose.model('Vessel', vesselSchema);

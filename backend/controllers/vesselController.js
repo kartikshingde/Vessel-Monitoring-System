@@ -1,6 +1,7 @@
 const Vessel = require("../models/Vessel");
+const NoonReport = require('../models/NoonReport');
 
-//   GET /api/vessels
+// GET /api/vessels
 exports.getVessels = async (req, res) => {
   try {
     let query = {};
@@ -18,7 +19,7 @@ exports.getVessels = async (req, res) => {
     res.json({
       success: true,
       count: vessels.length,
-      data: vessels, // NEW - consistent with users
+      data: vessels,
     });
   } catch (error) {
     res.status(500).json({
@@ -28,10 +29,10 @@ exports.getVessels = async (req, res) => {
   }
 };
 
-//   GET /api/vessels/:id
+// GET /api/vessels/:id
 exports.getVessel = async (req, res) => {
   try {
-    const vessels = await Vessel.findById(req.params.id).populate(
+    const vessel = await Vessel.findById(req.params.id).populate(
       "captainId",
       "name email"
     );
@@ -55,8 +56,7 @@ exports.getVessel = async (req, res) => {
 
     res.json({
       success: true,
-      count: vessels.length,
-      data: vessels, // NEW - consistent with users
+      data: vessel,
     });
   } catch (error) {
     res.status(500).json({
@@ -66,11 +66,10 @@ exports.getVessel = async (req, res) => {
   }
 };
 
-//   POST /api/vessels
+// POST /api/vessels
 exports.createVessel = async (req, res) => {
   try {
-    const { name, mmsi, captainId, position, speed, heading, status } =
-      req.body;
+    const { name, mmsi, captainId, position, speed, heading, status } = req.body;
 
     if (!name || !mmsi) {
       return res.status(400).json({
@@ -87,7 +86,7 @@ exports.createVessel = async (req, res) => {
       });
     }
 
-    const vessels = await Vessel.create({
+    const vessel = await Vessel.create({
       name,
       mmsi,
       captainId: captainId || null,
@@ -97,10 +96,9 @@ exports.createVessel = async (req, res) => {
       status: status || "active",
     });
 
-    res.json({
+    res.status(201).json({
       success: true,
-      count: vessels.length,
-      data: vessels,
+      data: vessel,
     });
   } catch (error) {
     res.status(500).json({
@@ -110,12 +108,12 @@ exports.createVessel = async (req, res) => {
   }
 };
 
-//   PUT /api/vessels/:id
+// PUT /api/vessels/:id
 exports.updateVessel = async (req, res) => {
   try {
-    let vessels = await Vessel.findById(req.params.id);
+    let vessel = await Vessel.findById(req.params.id);
 
-    if (!vessels) {
+    if (!vessel) {
       return res.status(404).json({
         success: false,
         message: "Vessel not found",
@@ -124,7 +122,7 @@ exports.updateVessel = async (req, res) => {
 
     if (
       req.user.role === "captain" &&
-      vessels.captainId?.toString() !== req.user._id.toString()
+      vessel.captainId?.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({
         success: false,
@@ -136,15 +134,14 @@ exports.updateVessel = async (req, res) => {
       delete req.body.captainId;
     }
 
-    vessels = await Vessel.findByIdAndUpdate(req.params.id, req.body, {
+    vessel = await Vessel.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
 
     res.json({
       success: true,
-      count: vessels.length,
-      data: vessels,
+      data: vessel,
     });
   } catch (error) {
     res.status(500).json({
@@ -154,24 +151,82 @@ exports.updateVessel = async (req, res) => {
   }
 };
 
-//   DELETE /api/vessels/:id
+// DELETE /api/vessels/:id
 exports.deleteVessel = async (req, res) => {
   try {
-    const vessels = await Vessel.findById(req.params.id);
+    const vessel = await Vessel.findById(req.params.id);
 
-    if (!vessels) {
+    if (!vessel) {
       return res.status(404).json({
         success: false,
         message: "Vessel not found",
       });
     }
 
-    await vessels.deleteOne();
+    await vessel.deleteOne();
 
     res.json({
       success: true,
-      count: vessels.length,
-      data: vessels, // NEW - consistent with users
+      message: "Vessel deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// POST /api/vessels/:id/noon-report
+exports.submitNoonReport = async (req, res) => {
+  try {
+    const vessel = await Vessel.findById(req.params.id);
+    
+    if (!vessel) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vessel not found',
+      });
+    }
+
+    // Verify captain is assigned to this vessel
+    if (vessel.captainId?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not assigned to this vessel',
+      });
+    }
+
+    const noonReport = await NoonReport.create({
+      vessel: vessel._id,
+      captain: req.user._id,
+      ...req.body,
+    });
+
+    res.status(201).json({
+      success: true,
+      data: noonReport,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET /api/vessels/:id/noon-reports
+exports.getNoonReports = async (req, res) => {
+  try {
+    const reports = await NoonReport.find({ vessel: req.params.id })
+      .populate('captain', 'name email')
+      .sort({ reportedAt: -1 })
+      .limit(20);
+
+    res.json({
+      success: true,
+      count: reports.length,
+      data: reports,
     });
   } catch (error) {
     res.status(500).json({
